@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -14,6 +16,7 @@ class Product extends Model
         'price',
         'quantity',
         'description',
+        'image_path',
     ];
 
     protected $casts = [
@@ -21,10 +24,52 @@ class Product extends Model
         'quantity' => 'integer',
     ];
 
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class);
+    }
+
     /**
-     * Retorna o status do estoque baseado na quantidade.
-     * Usado para colorir o badge na vitrine e no painel.
+     * Executa a venda com segurança.
+     * Valida estoque e desconta atomicamente.
+     * Lança exceção se não houver estoque suficiente.
      */
+    public function sell(int $quantity, int $userId): Sale
+    {
+        // Recarrega do banco com lock para evitar race condition
+        $this->refresh();
+
+        if ($quantity <= 0) {
+            throw new \InvalidArgumentException('A quantidade deve ser maior que zero.');
+        }
+
+        if ($this->quantity < $quantity) {
+            throw new \DomainException(
+                "Estoque insuficiente. Disponível: {$this->quantity} unidade(s)."
+            );
+        }
+
+        // Desconta o estoque
+        $this->decrement('quantity', $quantity);
+
+        // Registra a venda
+        return Sale::create([
+            'product_id'    => $this->id,
+            'user_id'       => $userId,
+            'quantity_sold' => $quantity,
+            'unit_price'    => $this->price,
+            'total'         => $this->price * $quantity,
+        ]);
+    }
+
+    // ── Accessors ──────────────────────────────────────────────
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image_path) return null;
+        return Storage::url($this->image_path);
+    }
+
     public function getStockStatusAttribute(): string
     {
         if ($this->quantity === 0) return 'danger';

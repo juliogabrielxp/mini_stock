@@ -1,6 +1,18 @@
 <x-layouts.app title="Painel — MiniStock">
 
-    <aside class="sidebar">
+    {{-- Overlay escuro (mobile) --}}
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    {{-- Topbar mobile --}}
+    <div class="mobile-topbar">
+        <span class="brand"><i class="bi bi-bag-heart-fill me-1"></i>Mini<span>Stock</span></span>
+        <button class="btn-hamburger" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+
+    {{-- Sidebar --}}
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="bi bi-bag-heart-fill"></i> Mini<span>Stock</span>
         </div>
@@ -8,12 +20,12 @@
         <nav class="sidebar-nav">
             <ul class="nav flex-column gap-1">
                 <li class="nav-item">
-                    <a href="{{ route('painel') }}" class="nav-link active">
+                    <a href="{{ route('painel') }}" class="nav-link active" onclick="closeSidebar()">
                         <i class="bi bi-boxes"></i> Produtos
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('home') }}" class="nav-link">
+                    <a href="{{ route('home') }}" class="nav-link" onclick="closeSidebar()">
                         <i class="bi bi-shop"></i> Ver vitrine
                     </a>
                 </li>
@@ -35,6 +47,7 @@
         </div>
     </aside>
 
+    {{-- Conteúdo principal --}}
     <main class="painel-content">
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>

@@ -1,22 +1,25 @@
 <?php
-
 namespace App\Livewire;
-
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
-
 class ProductList extends Component
 {
     use WithPagination;
-
     public string $search = '';
-
+    public ?Product $selected = null;
     public function updatingSearch(): void
     {
         $this->resetPage();
     }
-
+    public function openModal(int $id): void
+    {
+        $this->selected = Product::find($id);
+    }
+    public function closeModal(): void
+    {
+        $this->selected = null;
+    }
     public function render()
     {
         $products = Product::query()
@@ -26,7 +29,6 @@ class ProductList extends Component
             )
             ->orderBy('name')
             ->paginate(12);
-
         return view('livewire.product-list', compact('products'));
     }
 }
